@@ -1,3 +1,10 @@
+# Example
+
+```sh
+go run ./cmd/taskframe -db=./databases/kola-octavia.db
+```
+
+
 # TaskFrame
 
 [![CI](https://github.com/mustachius/taskframe/actions/workflows/ci.yml/badge.svg)](https://github.com/mustachius/taskframe/actions/workflows/ci.yml)
