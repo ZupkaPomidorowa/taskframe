@@ -371,6 +371,7 @@ func (m model) startEdit(t *task.Task, ret mode) model {
 	ei.Cursor.SetMode(cursor.CursorStatic)
 	ei.Width = max(10, min(m.w, 60)-10)
 	ei.Focus()
+	ei.SetValue(t.Title) // prefill the title for inline editing
 	m.editInput = ei
 	m.editReturn = ret
 	m.mode = modeEdit
