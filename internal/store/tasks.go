@@ -297,6 +297,31 @@ func (s *Store) DeleteTask(id int64) error {
 	return tx.Commit()
 }
 
+// UndeleteTask undeletes (status='pending'). Undo restores it.
+func (s *Store) UndeleteTask(id int64) error {
+	t, err := s.GetTask(id)
+	if err != nil {
+		return err
+	}
+	if t.Status != task.StatusDeleted {
+		return fmt.Errorf("task %d is not deleted", id)
+	}
+	now := time.Now()
+	opID := newOpID()
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`UPDATE tasks SET status='pending', modified_at=? WHERE id=?`, fmtTime(now), id); err != nil {
+		return err
+	}
+	if err := logActivity(tx, opID, id, now, "pending", "status", string(t.Status), string(task.StatusPending)); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // Purge hard-deletes all tasks with status='deleted'. Not undoable.
 func (s *Store) Purge() (int64, error) {
 	res, err := s.db.Exec(`DELETE FROM tasks WHERE status='deleted'`)

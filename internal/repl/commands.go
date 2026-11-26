@@ -92,6 +92,8 @@ func (m model) dispatch(line string) (tea.Model, tea.Cmd) {
 		return m, m.cmdDone(rest)
 	case "del", "rm":
 		return m, m.cmdDel(rest)
+	case "undel":
+		return m, m.cmdUndel(rest)
 	case "note", "n":
 		return m, m.cmdNote(rest)
 	case "read":
@@ -344,6 +346,24 @@ func (m model) cmdDel(args []string) tea.Cmd {
 				continue
 			}
 			lines = append(lines, m.th.Dim.Render(m.lang.Tf("status.taskDeletedUndo", id)))
+		}
+		return resultMsg{lines: lines, reload: true}
+	}
+}
+
+func (m model) cmdUndel(args []string) tea.Cmd {
+	return func() tea.Msg {
+		ids, err := task.ParseIDSpec(args)
+		if err != nil {
+			return errResult(m.th, err.Error())
+		}
+		var lines []string
+		for _, id := range ids {
+			if err := m.store.UndeleteTask(id); err != nil {
+				lines = append(lines, m.th.StatusErr.Render("  x "+err.Error()))
+				continue
+			}
+			lines = append(lines, m.th.Dim.Render(m.lang.Tf("status.taskUndeletedUndo", id)))
 		}
 		return resultMsg{lines: lines, reload: true}
 	}
